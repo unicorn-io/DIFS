@@ -91,6 +91,7 @@ def update_file_sys(dat, update=True):
     with open("FILE_LIST.py", 'w') as f:
         f.write("FILE_LIST="+str(old_dat))
 
-add("./hell.txt")
-print(show_files())
-print("Received", 1024)
+remove("QmSJa5XGQhauP7s43js2t3U6tZ219zUgDZYqhGp9Dsvcz9")
+show_files()
+get("QmSJa5XGQhauP7s43js2t3U6tZ219zUgDZYqhGp9Dsvcz9")
+show_files()

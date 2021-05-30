@@ -8,8 +8,15 @@ from gen_chain import *
 import peer_DHTS
 from importlib import reload
 import FILE_LIST
+import sys
 
-
+help_string = '''
+usage: peer_proc.py [add <path>]
+                    [del <OID>]
+                    [show_files()]
+                    [download <OID> optional: <path>]
+                    [get <OID>]
+'''
 
 def add(file_path="./", is_from_sys=False, sys_dict={}, sys_OID=""):
     reload(peer_DHTS)
@@ -19,7 +26,7 @@ def add(file_path="./", is_from_sys=False, sys_dict={}, sys_OID=""):
     if not is_from_sys:
         chain, OID = get_chain(file_path)
         old_ddt.update(chain)
-        update_file_sys({OID: "".join(str(tmp) for tmp in chain[OID][1][:2])})
+        update_file_sys({OID: ".".join(str(tmp) for tmp in chain[OID][1][:2])})
     else:
         OID = sys_OID
         old_ddt.update(sys_dict)
@@ -91,6 +98,41 @@ def update_file_sys(dat, update=True):
     with open("FILE_LIST.py", 'w') as f:
         f.write("FILE_LIST="+str(old_dat))
 
-#add("./hell.txt")
-print(show_files())
-print("Received", 1024)
+def download_exec_file(OID, dest="./"):
+    gen_file(OID, peer_DHTS.DDT, dest_path=dest)
+
+if len(sys.argv) < 2:
+    print(help_string)
+    sys.exit(1)
+
+if (sys.argv[1] == 'add'):
+    if (len(sys.argv) < 3):
+        print("usage:", sys.argv[0], "[add <path>]")
+        sys.exit(1)
+    else:
+        add(sys.argv[2])
+elif (sys.argv[1] == 'show_files'):
+    show_files()
+elif (sys.argv[1] == "del"):
+    if (len(sys.argv) != 3):
+        print("usage:", sys.argv[0], "[del <path>]")
+        sys.exit(1)
+    else:
+        remove(sys.argv[2])
+elif (sys.argv[1] == 'download'):
+    if (len(sys.argv) < 3):
+        print("usage:", sys.argv[0], "[download <OID> optional: <path>]")
+        sys.exit(1)
+    else:
+        if (len(sys.argv) == 4):
+            download_exec_file(sys.argv[2], sys.argv[3])
+        else:
+            download_exec_file(sys.argv[2])
+elif (sys.argv[1] == 'get'):
+    if (len(sys.argv) < 3):
+        print("usage:", sys.argv[0], "[get <OID>]")
+        sys.exit(1)
+    else:
+        get(sys.argv[2])
+else:
+    print(help_string)

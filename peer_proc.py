@@ -91,6 +91,6 @@ def update_file_sys(dat, update=True):
     with open("FILE_LIST.py", 'w') as f:
         f.write("FILE_LIST="+str(old_dat))
 
-#add("./hell.txt")
+add("./hell.txt")
 print(show_files())
 print("Received", 1024)

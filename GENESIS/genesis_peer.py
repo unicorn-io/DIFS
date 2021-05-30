@@ -30,7 +30,7 @@ def service_connection(key, mask):
             dat = json.loads(recv_data.decode().replace("\'", "\""))
             if (dat['type'] == 'add'):
                 if dat['OID'] in dist_data_tab:
-                    dist_data_tab.append(dat['peerID'])
+                    dist_data_tab[dat['OID']].append(dat['peerID'])
                 else:
                     dist_data_tab[dat['OID']] = [dat['peerID']]
                 print(dist_data_tab)
@@ -47,6 +47,7 @@ def service_connection(key, mask):
                     print('processing............')
                     print('Sending CONFIG for OID({}) to PEERID: {}'.format(dat['OID'], dat['peerID']))
                     try:
+                        print(str(peer_list[dist_data_tab[dat['OID']][0]]))
                         sent = sock.send(str(peer_list[dist_data_tab[dat['OID']][0]]).encode('utf-8'))
                     except:
                         print("KEY ERROR: INVALID QUERY")

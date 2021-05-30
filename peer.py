@@ -10,8 +10,8 @@ import ast
 from importlib import reload
 import hashlib
 
-GENESIS_HOST = '192.168.100.106'
-GENESIS_PORT = 65004
+GENESIS_HOST = '192.168.100.107'
+GENESIS_PORT = 65000
 
 PEER_HOST = ""
 PEER_PORT = -1

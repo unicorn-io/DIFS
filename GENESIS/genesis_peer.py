@@ -29,7 +29,7 @@ def service_connection(key, mask):
         if recv_data:
             dat = json.loads(recv_data.decode().replace("\'", "\""))
             if (dat['type'] == 'add'):
-                if dat['OID'] in dist_data_table:
+                if dat['OID'] in dist_data_tab:
                     dist_data_tab.append(dat['peerID'])
                 else:
                     dist_data_tab[dat['OID']] = [dat['peerID']]

@@ -29,6 +29,7 @@ def add(file_path="./", is_from_sys=False, sys_dict={}, sys_OID=""):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((GENESIS_HOST, GENESIS_PORT))
         sock.sendall(json.dumps({'type': 'add', 'OID': OID, 'peerID':peerID}).encode('utf-8'))
+    print("Successfully added OID:{}".format(OID))
 
 def get(OID):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -90,7 +91,6 @@ def update_file_sys(dat, update=True):
     with open("FILE_LIST.py", 'w') as f:
         f.write("FILE_LIST="+str(old_dat))
 
-add("./hell.txt")
-get("Qmd313U4eRMSzWbS3yWXLmptLjL8uE8qQk39RvF3g3hSi1")
-
+#add("./hell.txt")
+print(show_files())
 print("Received", 1024)

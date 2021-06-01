@@ -25,10 +25,16 @@ def add(file_path="./", is_from_sys=False, sys_dict={}, sys_OID=""):
     OID = None
     if not is_from_sys:
         chain, OID = get_chain(file_path)
+        if OID in peer_DHTS.DDT:
+            print("FILE EXISTS, USE FLASH TO ACCESS IT")
+            return
         old_ddt.update(chain)
         update_file_sys({OID: ".".join(str(tmp) for tmp in chain[OID][1][:2])})
     else:
         OID = sys_OID
+        if OID in peer_DHTS.DDT:
+            print("FILE EXISTS, USE FLASH TO ACCESS IT")
+            return
         old_ddt.update(sys_dict)
         update_file_sys({OID: "".join(str(tmp) for tmp in sys_dict[OID][1][:2])})
     with open("peer_DHTS.py",'w') as f:

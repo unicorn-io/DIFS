@@ -17,9 +17,16 @@ def accept_wrapper(sock):
     conn.setblocking(False)
     peerID = hashlib.sha256(str(addr).encode('utf-8')).hexdigest()
     peer_list[peerID] = addr # laddr field in socket
+    HOST_LIST.append(addr)
     data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=data)
+
+def print_reps():
+	print("DISTRIBUTED DATA TABLE")
+	print(json.dumps(dist_data_tab))
+	print("\nPEER LIST")
+	print(json.dumps(peer_list))
 
 def service_connection(key, mask):
     sock = key.fileobj
@@ -27,14 +34,15 @@ def service_connection(key, mask):
     if mask & selectors.EVENT_READ:
         recv_data  = sock.recv(4096)
         if recv_data:
+            peer_list.pop(hashlib.sha256(str(HOST_LIST.pop()).encode('utf-8')).hexdigest())
             dat = json.loads(recv_data.decode().replace("\'", "\""))
             if (dat['type'] == 'add'):
                 if dat['OID'] in dist_data_tab:
-                    dist_data_tab[dat['OID']].append(dat['peerID'])
+                    if dat['peerID'] not in dist_data_tab[dat['OID']]:
+                        dist_data_tab[dat['OID']].append(dat['peerID'])
                 else:
                     dist_data_tab[dat['OID']] = [dat['peerID']]
-                print(dist_data_tab)
-                print(peer_list)
+                print_reps()
             elif (dat['type'] == 'del'):
                 try:
                     dist_data_tab[dat['OID']].remove(dat['peerID'])
@@ -42,8 +50,10 @@ def service_connection(key, mask):
                         dist_data_tab.pop(dat['OID'])
                 except:
                     print("ARG ERRORS MULTIPLE, CHECK IMPL")
+                print_reps()
             else:
                 if mask & selectors.EVENT_WRITE:
+                    print_reps()
                     print('processing............')
                     print('Sending CONFIG for OID({}) to PEERID: {}'.format(dat['OID'], dat['peerID']))
                     try:
@@ -51,6 +61,7 @@ def service_connection(key, mask):
                         sent = sock.send(str(peer_list[dist_data_tab[dat['OID']][0]]).encode('utf-8'))
                     except:
                         print("KEY ERROR: INVALID QUERY")
+		   	
         else:
             print("closing connection to", data.addr)
             sel.unregister(sock)

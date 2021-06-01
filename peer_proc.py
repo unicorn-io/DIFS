@@ -9,6 +9,9 @@ import peer_DHTS
 from importlib import reload
 import FILE_LIST
 import sys
+from multiprocessing import Process
+from multiprocessing import Manager
+import numpy as np
 
 help_string = '''
 usage: peer_proc.py [add <path>]
@@ -45,33 +48,55 @@ def add(file_path="./", is_from_sys=False, sys_dict={}, sys_OID=""):
     print("Successfully added OID:{}".format(OID))
 
 def get(OID):
+    if OID in peer_DHTS.DDT:
+        print("FILE EXISTS, USE FLASH TO ACCESS IT")
+        return
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((GENESIS_HOST, GENESIS_PORT))
     s.sendall(json.dumps({'type':"ask", "OID": OID, "peerID":peerID}).encode('utf-8'))
     data = s.recv(1024).decode('utf-8')
-    HOST, PORT = eval(data)
-    print(data)
+    print(eval(data))
+    HOST, PORT = eval(data)[0]
+    prs = data
     s.close()
     reload(peer_DHTS)
     reload(FILE_LIST)
-    if OID in peer_DHTS.DDT:
-        print("FILE EXISTS, USE FLASH TO ACCESS IT")
-        return
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     s.connect((HOST, PORT))
     PH, PP = s.getsockname()
     s.send(json.dumps({'type':'get', 'OID': [OID]}).encode('utf-8'))
     data = s.recv(1024)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    s.close()
     eval_lis = eval(data.decode('utf-8'))
-    s.sendall(json.dumps({'type':'get', 'OID': eval_lis[1][2:]}).encode('utf-8'))
-    data = s.recv(4096)
-    print(eval(data.decode('utf-8').replace("][", "],[")))
-    a = eval(data.decode('utf-8').replace("][", "],["))
-
-    dat_dict = {}
-    for x in range(len(eval_lis[1][2:])):
-        dat_dict[eval_lis[1][2:][x]] = a[x]
+    chunk_lis = np.array(eval_lis[1][2:])
+    chunk_lis = np.array_split(chunk_lis, len(eval(prs)))
+    chunk_lis = [list(k) for k in chunk_lis]
+    manager = Manager()
+    dat_dict = manager.dict()
+    def peer_dist_get(clis, addr, dat_dict):
+        sockk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sockk.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        sockk.connect((addr[0], addr[1]))
+        print(clis)
+        sockk.sendall(json.dumps({'type':'get', 'OID': clis}).encode('utf-8'))
+        data = sockk.recv(4096)
+        print(eval(data.decode('utf-8').replace("][", "],[")))
+        a = eval(data.decode('utf-8').replace("][", "],["))
+        print(a)
+        for x in range(len(clis)):
+            dat_dict[clis[x]] = a[x]
+        print(dat_dict)
+        sockk.close()
+    print("\nmanaeger:\n{}".format(dat_dict.values()))
+    multi_proc = []
+    print("\n\n")
+    print(chunk_lis)
+    for (chunk, pr) in zip(chunk_lis, eval(prs)):
+        print("{} type: {}".format(chunk, type(chunk)))
+        print("{} type: {}".format(pr, type(pr)))
+        multi_proc.append(Process(target=peer_dist_get, args=(chunk, pr, dat_dict,)))
+        multi_proc[len(multi_proc)-1].start()
+        multi_proc[len(multi_proc)-1].join()
 
     dat_dict[OID] = eval_lis
     print(dat_dict)

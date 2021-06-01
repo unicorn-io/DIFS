@@ -56,9 +56,10 @@ def service_connection(key, mask):
                     print_reps()
                     print('processing............')
                     print('Sending CONFIG for OID({}) to PEERID: {}'.format(dat['OID'], dat['peerID']))
+                    send_list = [peer_list[addrs] for addrs in dist_data_tab[dat['OID']]]
+                    print(send_list)
                     try:
-                        print(str(peer_list[dist_data_tab[dat['OID']][0]]))
-                        sent = sock.send(str(peer_list[dist_data_tab[dat['OID']][0]]).encode('utf-8'))
+                        sent = sock.send(str(send_list).encode('utf-8'))
                     except:
                         print("KEY ERROR: INVALID QUERY")
 		   	

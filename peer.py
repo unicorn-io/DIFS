@@ -70,6 +70,10 @@ def init():
         s.shutdown(socket.SHUT_RDWR)
         s.close()
 
+if (len(sys.argv) == 3):
+	GENESIS_HOST = sys.argv[1]
+	GENESIS_PORT = int(sys.argv[2])
+
 init()
 peer_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print(PEER_HOST, PEER_PORT)

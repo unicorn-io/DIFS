@@ -19,6 +19,7 @@ usage: peer_proc.py [add <path>]
                     [show_files()]
                     [download <OID> optional: <path>]
                     [get <OID>]
+                    [--factory-reset]
 '''
 
 def add(file_path="./", is_from_sys=False, sys_dict={}, sys_OID=""):
@@ -55,7 +56,7 @@ def get(OID):
     s.connect((GENESIS_HOST, GENESIS_PORT))
     s.sendall(json.dumps({'type':"ask", "OID": OID, "peerID":peerID}).encode('utf-8'))
     data = s.recv(1024).decode('utf-8')
-    print(eval(data))
+    #print(eval(data))
     HOST, PORT = eval(data)[0]
     prs = data
     s.close()
@@ -77,20 +78,20 @@ def get(OID):
         sockk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sockk.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sockk.connect((addr[0], addr[1]))
-        print(clis)
+        #print(clis)
         sockk.sendall(json.dumps({'type':'get', 'OID': clis}).encode('utf-8'))
         data = sockk.recv(4096)
-        print(eval(data.decode('utf-8').replace("][", "],[")))
+        #print(eval(data.decode('utf-8').replace("][", "],[")))
         a = eval(data.decode('utf-8').replace("][", "],["))
-        print(a)
+        #print(a)
         for x in range(len(clis)):
             dat_dict[clis[x]] = a[x]
-        print(dat_dict)
+        #print(dat_dict)
         sockk.close()
-    print("\nmanaeger:\n{}".format(dat_dict.values()))
+    #print("\nmanaeger:\n{}".format(dat_dict.values()))
     multi_proc = []
-    print("\n\n")
-    print(chunk_lis)
+    #print("\n\n")
+    #print(chunk_lis)
     for (chunk, pr) in zip(chunk_lis, eval(prs)):
         print("{} type: {}".format(chunk, type(chunk)))
         print("{} type: {}".format(pr, type(pr)))
@@ -99,7 +100,7 @@ def get(OID):
         multi_proc[len(multi_proc)-1].join()
 
     dat_dict[OID] = eval_lis
-    print(dat_dict)
+    #print(dat_dict)
     add(is_from_sys=True, sys_dict=dat_dict, sys_OID=OID)
 
 def remove(OID):
@@ -131,6 +132,12 @@ def update_file_sys(dat, update=True):
 
 def download_exec_file(OID, dest="./"):
     gen_file(OID, peer_DHTS.DDT, dest_path=dest)
+
+def format_peer():
+    with open("FILE_LIST.py", 'w') as f:
+        f.write("FILE_LIST={}")
+    with open("peer_DHTS.py", 'w') as f:
+        f.write("DDT={}")
 
 if len(sys.argv) < 2:
     print(help_string)
@@ -165,5 +172,7 @@ elif (sys.argv[1] == 'get'):
         sys.exit(1)
     else:
         get(sys.argv[2])
+elif (sys.argv[1] == '--factory-reset'):
+    format_peer()
 else:
     print(help_string)
